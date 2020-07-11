@@ -1,12 +1,14 @@
 import React, { useRef } from "react";
 import { View, StyleSheet, Dimensions } from "react-native";
-import { useValue, onScrollEvent, interpolateColor } from "react-native-redash";
-import Animated, { multiply } from "react-native-reanimated";
+import { interpolateColor, useScrollHandler } from "react-native-redash";
+import Animated, { multiply, divide } from "react-native-reanimated";
 
 import Slide, { SLIDE_HEIGHT } from "./Slide";
 import Subslide from "./Subslide";
+import Dot from "./Dot";
 const BORDER_RADIUS = 75;
 const { width } = Dimensions.get("window");
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -25,6 +27,14 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     backgroundColor: "white",
     borderTopLeftRadius: BORDER_RADIUS,
+  },
+
+  pagination: {
+    ...StyleSheet.absoluteFillObject,
+    height: BORDER_RADIUS,
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
   },
 });
 
@@ -53,15 +63,16 @@ const slides = [
   {
     title: "Funky",
     subtitle: "Look Good, Feel Good",
-    description: "Latest trends in fashion and explore your personality",
+    description:
+      "Discover the latest trends in fashion and explore your personality",
     color: "#FFDDDD",
   },
 ];
 
 const Onboarding = () => {
   const scroll = useRef<Animated.ScrollView>(null);
-  const x = useValue(0);
-  const onScroll = onScrollEvent({ x });
+  const { scrollHandler, x } = useScrollHandler();
+  // const {} = onScrollEvent();
   const backgroundColor = interpolateColor(x, {
     inputRange: slides.map((_, i) => i * width),
     outputRange: slides.map((slide) => slide.color),
@@ -76,8 +87,7 @@ const Onboarding = () => {
           decelerationRate="fast"
           showsHorizontalScrollIndicator={false}
           bounces={false}
-          scrollEventThrottle={1}
-          {...{ onScroll }}
+          {...scrollHandler}
         >
           {slides.map(({ title }, index) => (
             <Slide key={index} right={!!(index % 2)} {...{ title }} />
@@ -98,6 +108,12 @@ const Onboarding = () => {
             },
           ]}
         >
+          <View style={styles.pagination}>
+            {slides.map((_, index) => (
+              <Dot key={index} currentIndex={divide(x, width)} {...{ index }} />
+            ))}
+          </View>
+
           {slides.map(({ subtitle, description }, index) => (
             <Subslide
               onPress={() => {
